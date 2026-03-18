@@ -37,7 +37,6 @@ public partial class TuneWeaverPlugin : BaseUnityPlugin
     
     private void Awake()
     {
-        // Put your initialization logic here
         Logger.LogInfo($"Plugin {Name} ({Id}) has loaded!");
 
         logSource = Logger;
