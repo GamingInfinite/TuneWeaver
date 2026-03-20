@@ -57,8 +57,10 @@ public class NeedolinPatch
                         {
                             needolinClip.Value = "Needolin Start";
                         }
-
-                        needolinClip.Value = atBench.Value ? songData.SitStartAnimName : songData.StandStartAnimName;
+                        else
+                        {
+                            needolinClip.Value = atBench.Value ? songData.SitStartAnimName : songData.StandStartAnimName;
+                        }
                     }
 
                     action.Invoke();
