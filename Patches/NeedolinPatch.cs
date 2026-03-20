@@ -15,16 +15,27 @@ public class NeedolinPatch
     [HarmonyPostfix]
     public static void Postfix(PlayMakerFSM __instance)
     {
-        if (__instance is { name: "Hero_Hornet(Clone)", FsmName: "Silk Specials" })
+        bool isBench = __instance.name.Contains("RestBench") && __instance.FsmName == "Bench Control";
+        if (__instance is { name: "Hero_Hornet(Clone)", FsmName: "Silk Specials" } || isBench)
         {
-            Fsm silkSpecials = __instance.Fsm;
-            Fsm? needolinFsm = silkSpecials.GetAction<RunFSM>("Needolin Sub", 2)?.fsmTemplateControl.RunFsm;
+            Fsm mainFsm = __instance.Fsm;
+            Fsm? needolinFsm;
+            if (isBench)
+            {
+                needolinFsm = mainFsm.GetAction<RunFSM>("Needolin Sub", 0)?.fsmTemplateControl.RunFsm;
+            }
+            else
+            {
+                needolinFsm = mainFsm.GetAction<RunFSM>("Needolin Sub", 2)?.fsmTemplateControl.RunFsm;
+            }
 
             FsmState startNeedolin = needolinFsm.GetState("Start Needolin");
+            FsmState startNeedolinBenched = needolinFsm.GetState("Start Needolin Benched");
             FsmState startNeedolinProper = needolinFsm.GetState("Start Needolin Proper");
             FsmState needolinCancel = needolinFsm.GetState("Cancelable");
             FsmState setTime = needolinFsm.GetState("Set Silk Drain Time");
             FsmState playNeedolin = needolinFsm.GetState("Play Needolin");
+            FsmState playNeedolinBenched = needolinFsm.GetState("Play Needolin Benched");
 
             FsmState TuneWeaver = needolinFsm.AddState("Tune Weaver");
 
@@ -59,7 +70,8 @@ public class NeedolinPatch
                         }
                         else
                         {
-                            needolinClip.Value = atBench.Value ? songData.SitStartAnimName : songData.StandStartAnimName;
+                            needolinClip.Value =
+                                atBench.Value ? songData.SitStartAnimName : songData.StandStartAnimName;
                         }
                     }
 
@@ -72,6 +84,7 @@ public class NeedolinPatch
             {
                 Method = (action) =>
                 {
+                    TuneWeaverPlugin.ActivationCheck();
                     SongData? songData = TuneWeaverPlugin.ActiveSongData;
                     if (songData == null)
                     {
@@ -99,10 +112,13 @@ public class NeedolinPatch
             decideMainAnim.Arg = decideMainAnim.Finish;
 
             startNeedolin.ReplaceAction(decideStartAnim, 6);
+            startNeedolinBenched.ReplaceAction(decideStartAnim, 2);
             playNeedolin.ReplaceAction(decideMainAnim, 4);
+            playNeedolinBenched.ReplaceAction(decideMainAnim, 2);
 
             TuneWeaver.AddLambdaMethod((finish) =>
             {
+                TuneWeaverPlugin.ActivationCheck();
                 SongData? songData = TuneWeaverPlugin.ActiveSongData;
                 if (songData == null)
                 {
